@@ -1,0 +1,105 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ titulo|default:"Formulário do Cliente" }}{% endblock %}
+
+{% block page_title %}{{ titulo|default:"Formulário do Cliente" }}{% endblock %}
+
+{% block content %}
+  <div class="card">
+    <div class="card-body">
+      <form method="post" class="row g-3">
+        {% csrf_token %}
+
+        <!-- Loop que renderiza cada campo do formulário -->
+        {% for field in form %}
+          <div class="col-md-6">
+            {{ field.label_tag }}
+            {{ field }}
+            
+            {% if field.help_text %}
+              <small class="form-text text-muted">{{ field.help_text }}</small>
+            {% endif %}
+
+            {% for error in field.errors %}
+              <div class="alert alert-danger p-1 mt-1">{{ error }}</div>
+            {% endfor %}
+          </div>
+        {% endfor %}
+        
+        <div class="col-12 mt-4">
+          <button type="submit" class="btn btn-primary">Salvar</button>
+          <a href="{% url 'cliente_list' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Espera o DOM estar completamente carregado para executar os scripts
+    document.addEventListener('DOMContentLoaded', function() {
+
+        // --- LÓGICA DE BUSCA DE ENDEREÇO POR CEP ---
+        const cepInput = document.getElementById('id_cep');
+        if (cepInput) {
+            cepInput.addEventListener('blur', () => {
+                const cep = cepInput.value.replace(/\D/g, ''); // Remove tudo que não for número
+
+                if (cep.length === 8) {
+                    // Feedback visual para o usuário
+                    document.getElementById('id_logradouro').value = "Buscando...";
+                    document.getElementById('id_bairro').value = "Buscando...";
+                    document.getElementById('id_cidade').value = "Buscando...";
+
+                    fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (!data.erro) {
+                                document.getElementById('id_logradouro').value = data.logradouro;
+                                document.getElementById('id_bairro').value = data.bairro;
+                                document.getElementById('id_cidade').value = data.localidade;
+                                document.getElementById('id_uf').value = data.uf;
+                                document.getElementById('id_numero_endereco').focus();
+                            } else {
+                                alert('CEP não encontrado.');
+                                document.getElementById('id_logradouro').value = "";
+                                document.getElementById('id_bairro').value = "";
+                                document.getElementById('id_cidade').value = "";
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Erro ao buscar o CEP:', error);
+                            alert('Ocorreu um erro ao buscar o CEP.');
+                        });
+                }
+            });
+        }
+
+
+        // --- LÓGICA PARA MOSTRAR/ESCONDER CAMPO DE CONTATO (PF/PJ) ---
+        const tipoPessoaSelect = document.getElementById('id_tipo_pessoa');
+        const nomeContatoInput = document.getElementById('id_nome_contato');
+        
+        if (tipoPessoaSelect && nomeContatoInput) {
+            const nomeContatoContainer = nomeContatoInput.parentElement;
+
+            function toggleNomeContato() {
+                if (tipoPessoaSelect.value === 'PJ') {
+                    nomeContatoContainer.style.display = 'block'; // Mostra
+                } else {
+                    nomeContatoContainer.style.display = 'none'; // Esconde
+                    nomeContatoInput.value = ''; // Limpa o valor
+                }
+            }
+
+            // Executa a função quando o valor do select muda
+            tipoPessoaSelect.addEventListener('change', toggleNomeContato);
+
+            // Executa a função assim que a página carrega para definir o estado inicial
+            toggleNomeContato();
+        }
+
+    });
+</script>
+{% endblock %}

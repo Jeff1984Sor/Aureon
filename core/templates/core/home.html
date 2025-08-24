@@ -1,0 +1,14 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Página Inicial{% endblock %}
+
+{% block page_title %}Dashboard Principal{% endblock %}
+
+{% block content %}
+  <p>Olá, <strong>{{ user.username }}</strong>!</p>
+  <p>Este é o conteúdo principal da sua página inicial. Você pode colocar gráficos, tabelas, ou o que mais quiser aqui.</p>
+
+  <div class="alert alert-success mt-4" role="alert">
+    Tudo está funcionando perfeitamente!
+  </div>
+{% endblock %}

@@ -54,6 +54,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'core.apps.CoreConfig',
+    'contas.apps.ContasConfig',
+    'clientes.apps.ClientesConfig',
 ]
 
 MIDDLEWARE = [
@@ -154,3 +156,12 @@ LOGGING = {
         'level': 'DEBUG', # Captura TUDO, desde debug até erros
     },
 }
+
+# Para onde ir depois do login
+LOGIN_REDIRECT_URL = 'home'
+
+# Para onde ir depois do logout
+LOGOUT_REDIRECT_URL = 'login'
+
+# Para onde ir se tentar acessar uma página protegida sem estar logado
+LOGIN_URL = 'login'

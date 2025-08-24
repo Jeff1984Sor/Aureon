@@ -1,0 +1,55 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Detalhes de {{ cliente.nome_razao_social }}{% endblock %}
+
+{% block page_title %}Detalhes do Cliente{% endblock %}
+
+{% block content %}
+  <div class="card">
+    <div class="card-header">
+      <h4 class="mb-0">{{ cliente.nome_razao_social }} ({{ cliente.get_tipo_pessoa_display }})</h4>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-6">
+          <h5>Dados Principais</h5>
+          <p><strong>Email:</strong> {{ cliente.email }}</p>
+          
+          {% if cliente.tipo_pessoa == 'PJ' %}
+            <p><strong>Nome do Contato:</strong> {{ cliente.nome_contato }}</p>
+          {% endif %}
+          
+          <p><strong>Cliente desde:</strong> {{ cliente.data_criacao|date:"d/m/Y" }}</p>
+        </div>
+        <div class="col-md-6">
+          <h5>Endereço</h5>
+          <p>
+            {{ cliente.logradouro }}, {{ cliente.numero_endereco }} <br>
+            {% if cliente.complemento %}{{ cliente.complemento }}<br>{% endif %}
+            {{ cliente.bairro }} - {{ cliente.cidade }}/{{ cliente.uf }} <br>
+            CEP: {{ cliente.cep }}
+          </p>
+        </div>
+      </div>
+
+      <hr>
+
+      <h5>Telefones Cadastrados</h5>
+      {% if cliente.telefones.all %}
+        <ul class="list-group">
+          {% for telefone in cliente.telefones.all %}
+            <li class="list-group-item">
+              <strong>{{ telefone.get_tipo_display }}:</strong> ({{ telefone.ddd }}) {{ telefone.numero }}
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted">Nenhum telefone cadastrado.</p>
+      {% endif %}
+    </div>
+    <div class="card-footer text-end">
+      <a href="{% url 'cliente_list' %}" class="btn btn-secondary">Voltar para a Lista</a>
+      <a href="{% url 'cliente_update' cliente.pk %}" class="btn btn-warning">Editar Cliente</a>
+    </div>
+  </div>
+{% endblock %}
