@@ -1,0 +1,119 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Visão Geral de Tarefas{% endblock %}
+{% block page_title %}Visão Geral de Tarefas{% endblock %}
+
+{% block content %}
+<!-- Seção de Filtros -->
+<div class="card mb-4">
+    <div class="card-header">Filtros</div>
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label for="responsavel" class="form-label">Responsável</label>
+                <select name="responsavel" id="responsavel" class="form-select">
+                    <option value="">Todos</option>
+                    {% for user in responsaveis %}
+                        <option value="{{ user.id }}" {% if request.GET.responsavel == user.id|stringformat:"s" %}selected{% endif %}>
+                            {{ user.username }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="status" class="form-label">Status</label>
+                <select name="status" id="status" class="form-select">
+                    <option value="">Todos</option>
+                    {% for value, display in status_choices %}
+                         <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>
+                            {{ display }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="data_de" class="form-label">Criadas de:</label>
+                <input type="date" name="data_de" id="data_de" class="form-control" value="{{ request.GET.data_de }}">
+            </div>
+            <div class="col-md-2">
+                <label for="data_ate" class="form-label">Até:</label>
+                <input type="date" name="data_ate" id="data_ate" class="form-control" value="{{ request.GET.data_ate }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tabela de Resultados -->
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Tarefa</th>
+                <th>Resumo do Caso</th>
+                <th>Responsável</th>
+                <th>Status</th>
+                <th>Criada em</th> 
+                <th>Prazo Previsto</th>
+                <th>Concluída em</th> h>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tarefa in tarefas %}
+            <tr>
+                <td>{{ tarefa.tipo_tarefa.nome }}</td>
+                <td>
+                    <a href="{% url 'caso_detail' tarefa.caso.pk %}#tarefas-tab-pane">
+                        {{ tarefa.caso.titulo_caso }}
+                    </a>
+                </td>
+                <td>{{ tarefa.responsavel.username|default:"-" }}</td>
+                <td>{{ tarefa.get_status_display }}</td>
+                <td>{{ tarefa.data_criacao|date:"d/m/Y" }}</td>
+                <td>{{ tarefa.data_conclusao_prevista|date:"d/m/Y" }}</td>
+                <td>{{ tarefa.data_conclusao|date:"d/m/Y"|default:"-" }}</td>
+                <td>
+                    <!-- Botão Cumprir (só aparece se não estiver concluída) -->
+                    {% if tarefa.status != 'C' %}
+                        <form action="{% url 'concluir_tarefa' tarefa.pk %}" method="post" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{% url 'tarefa_list_all' %}?{{ request.GET.urlencode }}">
+                            <button type="submit" class="btn btn-success btn-sm" title="Cumprir">
+                                <i class="bi bi-check-lg"></i>
+                            </button>
+                        </form>
+                    {% endif %}
+
+                    <!-- Botão Reabrir (só aparece se estiver concluída) -->
+                    {% if tarefa.status == 'C' %}
+                        <form action="{% url 'reabrir_tarefa' tarefa.pk %}" method="post" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{% url 'tarefa_list_all' %}?{{ request.GET.urlencode }}">
+                            <button type="submit" class="btn btn-secondary btn-sm" title="Reabrir">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                            </button>
+                        </form>
+                    {% endif %}
+
+                    <!-- Botão Deletar -->
+                    <form action="{% url 'deletar_tarefa' tarefa.pk %}" method="post" class="d-inline" onsubmit="return confirm('Tem certeza que deseja deletar esta tarefa?');">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{% url 'tarefa_list_all' %}?{{ request.GET.urlencode }}">
+                        <button type="submit" class="btn btn-danger btn-sm" title="Deletar">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" class="text-center">Nenhuma tarefa encontrada com os filtros aplicados.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

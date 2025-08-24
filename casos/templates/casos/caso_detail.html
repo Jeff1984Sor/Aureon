@@ -1,0 +1,183 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Detalhes do Caso #{{ caso.id }}{% endblock %}
+{% block page_title %}Detalhes do Caso #{{ caso.id }} - {{ caso.titulo_caso }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <!-- Navegação das Abas -->
+        <ul class="nav nav-tabs" id="casoTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="detalhes-tab" data-bs-toggle="tab" data-bs-target="#detalhes-tab-pane" type="button" role="tab" aria-controls="detalhes-tab-pane" aria-selected="true">Detalhes do Caso</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="andamentos-tab" data-bs-toggle="tab" data-bs-target="#andamentos-tab-pane" type="button" role="tab" aria-controls="andamentos-tab-pane" aria-selected="false">Andamentos</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tarefas-tab" data-bs-toggle="tab" data-bs-target="#tarefas-tab-pane" type="button" role="tab" aria-controls="tarefas-tab-pane" aria-selected="false">Tarefas</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="timesheet-tab" data-bs-toggle="tab" data-bs-target="#timesheet-tab-pane" type="button" role="tab" aria-controls="timesheet-tab-pane" aria-selected="false">Timesheet</button>
+            </li>
+        </ul>
+
+        <!-- Conteúdo das Abas -->
+        <div class="tab-content" id="casoTabContent">
+            
+            <!-- ABA 1: DETALHES DO CASO -->
+            <div class="tab-pane fade show active" id="detalhes-tab-pane" role="tabpanel" aria-labelledby="detalhes-tab" tabindex="0">
+                <!-- Conteúdo dos detalhes aqui -->
+                <div class="py-4">Seus detalhes do caso entram aqui.</div>
+                <li class="list-group-item"><strong>Total de Horas Trabalhadas:</strong> {{ caso.total_horas_trabalhadas }}</li>
+            </div>
+
+            <!-- ABA 2: ANDAMENTOS -->
+            <div class="tab-pane fade" id="andamentos-tab-pane" role="tabpanel" aria-labelledby="andamentos-tab" tabindex="0">
+                <div class="py-4">
+                    <h5>Adicionar Novo Andamento</h5>
+                    <form action="{% url 'add_andamento' caso.pk %}" method="post">
+                        {% csrf_token %}
+                        {{ andamento_form.as_p }}
+                        <button type="submit" class="btn btn-success mt-2">Salvar Andamento</button>
+                    </form>
+                    <hr class="my-4">
+                    <h5>Histórico de Andamentos</h5>
+                    {% for andamento in caso.andamentos.all %}
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <p class="card-text">{{ andamento.descricao|linebreaksbr }}</p>
+                            </div>
+                            <div class="card-footer text-muted small d-flex justify-content-between">
+                                <span><strong>Data:</strong> {{ andamento.data_andamento|date:"d/m/Y" }}</span>
+                                <span><strong>Registrado por:</strong> {{ andamento.usuario_criacao.username }} em {{ andamento.data_cadastro|date:"d/m/Y H:i" }}</span>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="alert alert-info">Nenhum andamento registrado.</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- ABA 3: TAREFAS -->
+            <div class="tab-pane fade" id="tarefas-tab-pane" role="tabpanel" aria-labelledby="tarefas-tab" tabindex="0">
+                <div class="py-4">
+                    <h5>Adicionar Nova Tarefa</h5>
+                    <form action="{% url 'add_tarefa' caso.pk %}" method="post">
+                        {% csrf_token %}
+                        {{ tarefa_form.as_p }}
+                        <button type="submit" class="btn btn-primary mt-2">Adicionar Tarefa</button>
+                    </form>
+                    <hr class="my-4">
+                    <h5>Tarefas do Caso</h5>
+                    <div class="table-responsive">
+                        <!-- Tabela de tarefas aqui -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- ====================================================== -->
+            <!-- ABA 4: TIMESHEET (Nova Aba) -->
+            <!-- ====================================================== -->
+            <div class="tab-pane fade" id="timesheet-tab-pane" role="tabpanel" aria-labelledby="timesheet-tab" tabindex="0">
+                <div class="py-4">
+                    <h5>Adicionar Lançamento de Horas</h5>
+                    <form action="{% url 'add_timesheet' caso.pk %}" method="post">
+                        {% csrf_token %}
+                        {{ timesheet_form.as_p }}
+                        <button type="submit" class="btn btn-info mt-2">Lançar Horas</button>
+                    </form>
+                    <hr class="my-4">
+                    <h5>Horas Lançadas</h5>
+                    <a href="{% url 'exportar_timesheet_excel' caso.pk %}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-file-earmark-excel"></i> Exportar Relatório
+                    </a>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Data Execução</th>
+                                    <th>Profissional</th>
+                                    <th>Tempo Gasto</th>
+                                    <th>Descrição</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for ts in caso.timesheets.all %}
+                                <tr>
+                                    <td>{{ ts.data_execucao|date:"d/m/Y" }}</td>
+                                    <td>{{ ts.profissional.username }}</td>
+                                    <td>{{ ts.tempo }}</td>
+                                    <td>{{ ts.descricao|truncatewords:15 }}</td>
+                                    <td>
+                                        <form action="{% url 'delete_timesheet' ts.pk %}" method="post" class="d-inline" onsubmit="return confirm('Tem certeza que deseja excluir este lançamento?');">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-danger btn-sm" title="Excluir">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center">Nenhum lançamento de horas para este caso.</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer text-end">
+        <a href="{% url 'caso_list' %}" class="btn btn-secondary">Voltar para a Lista</a>
+        <a href="#" class="btn btn-warning">Editar Caso</a>
+    </div>
+    <li class="list-group-item"><strong>Total de Horas Trabalhadas:</strong> {{ caso.total_horas_trabalhadas }}</li>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Seu script para manter a aba ativa após o reload vai aqui
+document.addEventListener('DOMContentLoaded', function() {
+    const url = window.location.href;
+    const hashIndex = url.indexOf('#');
+    const tempoInput = document.getElementById('id_tempo_str');
+
+    if (hashIndex !== -1) {
+        const hash = url.substring(hashIndex);
+        const tabButton = document.querySelector(`button[data-bs-target="${hash}"]`);
+        if (tabButton) {
+            const tabTrigger = new bootstrap.Tab(tabButton);
+            tabTrigger.show();
+        }
+    }
+    if (tempoInput) {
+        // Opções da máscara
+        const mascaraTempoOptions = {
+            mask: 'HH:MM',
+            blocks: {
+                HH: {
+                    mask: IMask.MaskedRange,
+                    from: 0,
+                    to: 99, // Permite mais de 24h, se necessário
+                    maxLength: 2
+                },
+                MM: {
+                    mask: IMask.MaskedRange,
+                    from: 0,
+                    to: 59,
+                    maxLength: 2
+                }
+            }
+        };
+
+        // Aplica a máscara ao campo
+        const mascara = IMask(tempoInput, mascaraTempoOptions);
+    }
+});
+</script>
+{% endblock %}

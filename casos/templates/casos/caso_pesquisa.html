@@ -1,0 +1,92 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ titulo }}{% endblock %}
+{% block page_title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="card mb-4">
+    <div class="card-header">Filtros de Pesquisa</div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-12">
+                <label for="q" class="form-label">Busca por texto (título, sinistro, cliente, etc.)</label>
+                <input type="text" name="q" id="q" class="form-control" value="{{ request.GET.q|default:'' }}">
+            </div>
+            <div class="col-md-3">
+                <label for="cliente" class="form-label">Cliente</label>
+                <select name="cliente" id="cliente" class="form-select">
+                    <option value="">Todos</option>
+                    {% for c in clientes %}<option value="{{ c.id }}" {% if request.GET.cliente == c.id|stringformat:"s" %}selected{% endif %}>{{ c.nome_razao_social }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="status" class="form-label">Status</label>
+                <select name="status" id="status" class="form-select">
+                    <option value="">Todos</option>
+                    {% for s in status_list %}<option value="{{ s.id }}" {% if request.GET.status == s.id|stringformat:"s" %}selected{% endif %}>{{ s.nome }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="advogado" class="form-label">Advogado</label>
+                <select name="advogado" id="advogado" class="form-select">
+                    <option value="">Todos</option>
+                    {% for a in advogados %}<option value="{{ a.id }}" {% if request.GET.advogado == a.id|stringformat:"s" %}selected{% endif %}>{{ a.nome }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="analista" class="form-label">Analista</label>
+                <select name="analista" id="analista" class="form-select">
+                    <option value="">Todos</option>
+                    {% for a in analistas %}<option value="{{ a.id }}" {% if request.GET.analista == a.id|stringformat:"s" %}selected{% endif %}>{{ a.nome }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="col-12 text-end">
+                <a href="{% url 'caso_pesquisa' %}" class="btn btn-secondary">Limpar Filtros</a>
+                <button type="submit" class="btn btn-primary">Pesquisar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Resultados da Pesquisa ({{ page_obj.paginator.count }} encontrado(s))</span>
+        <a href="{% url 'caso_exportar_excel' %}?{{ request.GET.urlencode }}" class="btn btn-sm btn-success">
+            <i class="bi bi-file-earmark-excel"></i> Exportar para Excel
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <!-- TABELA DE RESULTADOS AGORA ESTÁ AQUI -->
+            <table class="table table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Título</th>
+                        <th>Cliente</th>
+                        <th>Status</th>
+                        <th>Data de Entrada</th>
+                        <th>Advogado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for caso in casos %}
+                    <tr>
+                        <td><a href="{% url 'caso_detail' caso.pk %}">{{ caso.id }}</a></td>
+                        <td>{{ caso.titulo_caso }}</td>
+                        <td>{{ caso.cliente.nome_razao_social }}</td>
+                        <td><span class="badge bg-{{ caso.status.cor }}">{{ caso.status.nome }}</span></td>
+                        <td>{{ caso.data_entrada|date:"d/m/Y" }}</td>
+                        <td>{{ caso.advogado_responsavel.nome|default:"-" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">Nenhum caso encontrado com os filtros aplicados.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

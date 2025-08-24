@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'core.apps.CoreConfig',
     'contas.apps.ContasConfig',
     'clientes.apps.ClientesConfig',
+    'casos.apps.CasosConfig',
 ]
 
 MIDDLEWARE = [

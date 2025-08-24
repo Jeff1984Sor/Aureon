@@ -1,0 +1,252 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ titulo|default:"Formulário de Caso" }}{% endblock %}
+{% block page_title %}{{ titulo|default:"Formulário de Caso" }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form method="post" class="row g-3">
+            {% csrf_token %}
+
+            <!-- Linha 1: Status e Número do Aviso -->
+            <div class="col-md-6">
+                {{ form.status.label_tag }}
+                <div class="input-group">
+                    {{ form.status }}
+                    <button class="btn btn-outline-success" type="button" data-bs-toggle="modal" data-bs-target="#addGenericModal"
+                            data-field-name="status" data-field-label="Status" data-url="{% url 'add_status_ajax' %}">
+                        <i class="bi bi-plus-lg"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-6">
+                {{ form.numero_aviso.label_tag }}
+                {{ form.numero_aviso }}
+            </div>
+
+            <!-- Linha 2: Número do Sinistro e Número da Apólice -->
+            <div class="col-md-6">
+                {{ form.numero_sinistro.label_tag }}
+                {{ form.numero_sinistro }}
+            </div>
+            <div class="col-md-6">
+                {{ form.numero_apolice.label_tag }}
+                {{ form.numero_apolice }}
+            </div>
+
+            <!-- Linha 3: Cliente -->
+            <div class="col-12">
+                {{ form.cliente.label_tag }}
+                {{ form.cliente }}
+            </div>
+
+            <!-- Linha 4: Advogado Responsável e Analista -->
+            <div class="col-md-6">
+                {{ form.advogado_responsavel.label_tag }}
+                {{ form.advogado_responsavel }}
+            </div>
+            <div class="col-md-6">
+                {{ form.analista.label_tag }}
+                <div class="input-group">
+                    {{ form.analista }}
+                    <button class="btn btn-outline-success" type="button" data-bs-toggle="modal" data-bs-target="#addGenericModal"
+                            data-field-name="analista" data-field-label="Analista" data-url="{% url 'add_analista_ajax' %}">
+                        <i class="bi bi-plus-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Linha 5: Título do Caso -->
+            <div class="col-12">
+                {{ form.titulo_caso.label_tag }}
+                {{ form.titulo_caso }}
+            </div>
+
+            <!-- Linha 6: Data de Entrada e Previsão de Conclusão -->
+            <div class="col-md-6">
+                {{ form.data_entrada.label_tag }}
+                {{ form.data_entrada }}
+            </div>
+            <div class="col-md-6">
+                {{ form.previsao_conclusao.label_tag }}
+                {{ form.previsao_conclusao }}
+            </div>
+
+            <!-- Linha 7: Segurado e Terceiro -->
+            <div class="col-md-6">
+                {{ form.segurado.label_tag }}
+                {{ form.segurado }}
+            </div>
+            <div class="col-md-6">
+                {{ form.terceiro.label_tag }}
+                {{ form.terceiro }}
+            </div>
+
+            <!-- Linha 8: Cobertura e Motivo -->
+            <div class="col-md-6">
+                {{ form.cobertura.label_tag }}
+                <div class="input-group">
+                    {{ form.cobertura }}
+                    <button class="btn btn-outline-success" type="button" data-bs-toggle="modal" data-bs-target="#addGenericModal"
+                            data-field-name="cobertura" data-field-label="Cobertura" data-url="{% url 'add_cobertura_ajax' %}">
+                        <i class="bi bi-plus-lg"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-6">
+                {{ form.motivo.label_tag }}
+                <div class="input-group">
+                    {{ form.motivo }}
+                    <button class="btn btn-outline-success" type="button" data-bs-toggle="modal" data-bs-target="#addGenericModal"
+                            data-field-name="motivo" data-field-label="Motivo" data-url="{% url 'add_motivo_ajax' %}">
+                        <i class="bi bi-plus-lg"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Linha 9: Valor da Causa e Valor do Prejuízo -->
+            <div class="col-md-6">
+                {{ form.valor_causa.label_tag }}
+                {{ form.valor_causa }}
+            </div>
+            <div class="col-md-6">
+                {{ form.valor_prejuizo_apurado.label_tag }}
+                {{ form.valor_prejuizo_apurado }}
+            </div>
+            
+            <!-- Linha 10: Datas de Relatório -->
+            <div class="col-md-6">
+                {{ form.data_relatorio_preliminar.label_tag }}
+                {{ form.data_relatorio_preliminar }}
+            </div>
+            <div class="col-md-6">
+                {{ form.data_relatorio_final.label_tag }}
+                {{ form.data_relatorio_final }}
+            </div>
+            
+            <!-- Linha 11: Prazos e Controle -->
+            <div class="col-md-4">
+                {{ form.prazo_regulacao_dias.label_tag }}
+                {{ form.prazo_regulacao_dias }}
+            </div>
+            <div class="col-md-4">
+                {{ form.horas_trabalhadas.label_tag }}
+                {{ form.horas_trabalhadas }}
+            </div>
+            <div class="col-md-4">
+                {{ form.numero_caso_lo.label_tag }}
+                {{ form.numero_caso_lo }}
+            </div>
+
+             <!-- Linha 12: Produto -->
+            <div class="col-12">
+                {{ form.produto.label_tag }}
+                {{ form.produto }}
+            </div>
+
+            <!-- Linha 13: Resumo do Caso -->
+            <div class="col-12">
+                {{ form.resumo_caso.label_tag }}
+                {{ form.resumo_caso }}
+            </div>
+            
+            <!-- Linha 14: Observação -->
+            <div class="col-12">
+                {{ form.observacao.label_tag }}
+                {{ form.observacao }}
+            </div>
+
+            <!-- Botões de Ação -->
+            <div class="col-12 mt-4">
+                <button type="submit" class="btn btn-primary">Salvar Caso</button>
+                <a href="{% url 'caso_list' %}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Janela Modal Genérica (Deve estar fora do form, mas dentro do block) -->
+<div class="modal fade" id="addGenericModal" tabindex="-1" aria-labelledby="addGenericModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="addGenericModalLabel">Adicionar Novo Item</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="add-generic-form">
+                    <div class="mb-3">
+                        <label for="new-generic-name" class="form-label">Nome</label>
+                        <input type="text" class="form-control" id="new-generic-name" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="save-new-generic-item">Salvar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+// O seu código JavaScript para o modal genérico (que já está funcionando) vai aqui...
+document.addEventListener('DOMContentLoaded', function() {
+    // --- LÓGICA DO MODAL GENÉRICO ---
+    const genericModalElement = document.getElementById('addGenericModal');
+    if (genericModalElement) {
+        const genericModal = new bootstrap.Modal(genericModalElement);
+        const modalTitle = document.getElementById('addGenericModalLabel');
+        const modalInputLabel = genericModalElement.querySelector('.form-label');
+        const modalInput = document.getElementById('new-generic-name');
+        const saveButton = document.getElementById('save-new-generic-item');
+
+        let currentFieldSelect = null;
+        let currentUrl = '';
+
+        genericModalElement.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const fieldName = button.getAttribute('data-field-name');
+            const fieldLabel = button.getAttribute('data-field-label');
+            currentUrl = button.getAttribute('data-url');
+            
+            currentFieldSelect = document.getElementById(`id_${fieldName}`);
+            modalTitle.textContent = `Adicionar Novo ${fieldLabel}`;
+            modalInputLabel.textContent = `Nome do ${fieldLabel}`;
+            modalInput.value = '';
+        });
+
+        saveButton.addEventListener('click', function() {
+            const itemName = modalInput.value;
+            if (!itemName) {
+                alert('Por favor, digite um nome.');
+                return;
+            }
+
+            fetch(currentUrl, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `nome=${encodeURIComponent(itemName)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.id && data.nome) {
+                    const newOption = new Option(data.nome, data.id, true, true);
+                    currentFieldSelect.add(newOption);
+                    genericModal.hide();
+                } else {
+                    alert('Ocorreu um erro ao salvar o item.');
+                }
+            });
+        });
+    }
+});
+</script>
+{% endblock %}
