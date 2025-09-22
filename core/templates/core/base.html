@@ -1,51 +1,45 @@
 <!doctype html>
 <html lang="pt-br">
 <head>
-  <meta charset="utf-g">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Aureon - {% block title %}Dashboard{% endblock %}</title>
 
   <!-- CSS do Bootstrap -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   
-  <!-- Ícones do Bootstrap (opcional, mas útil) -->
+  <!-- Ícones do Bootstrap -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
   <style>
     /* Estilos básicos para o layout fixo */
-    body {
-      min-height: 100vh;
-    }
-    .sidebar {
-      position: fixed;
-      top: 0;
-      bottom: 0;
-      left: 0;
-      z-index: 100;
-      padding: 48px 0 0; /* Espaço para o topo */
-      box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
-    }
-    .main-content {
-      margin-left: 220px; /* Largura do menu lateral */
-      padding: 20px;
+    body { min-height: 100vh; background-color: #f8f9fa; }
+    .sidebar { position: fixed; top: 0; bottom: 0; left: 0; z-index: 100; padding: 48px 0 0; box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1); }
+    .main-content { margin-left: 220px; padding: 20px; }
+    .navbar-brand img {
+        max-height: 30px; /* Garante que o logo não seja muito alto */
     }
   </style>
 </head>
 <body>
 
-  <!-- BARRA DO TOPO -->
+  <!-- ====================================================== -->
+  <!-- BARRA DO TOPO (AGORA COM LOGO DINÂMICO) -->
+  <!-- ====================================================== -->
   <header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
-    <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3 fs-6" href="{% url 'home' %}">
-      <!-- ESPAÇO PARA O LOGO -->
-      Aureon Intelligent Solutions
+    <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3 fs-6 d-flex align-items-center" href="{% url 'home' %}">
+        {% if request.user.is_authenticated and request.user.empresa and request.user.empresa.logo %}
+            <img src="{{ request.user.empresa.logo.url }}" alt="Logo de {{ request.user.empresa.nome }}" class="me-2">
+            <span>{{ request.user.empresa.nome }}</span>
+        {% else %}
+            Aureon Intelligent Solutions
+        {% endif %}
     </a>
     <div class="navbar-nav">
       <div class="nav-item text-nowrap">
         <form method="post" action="{% url 'logout' %}">
           {% csrf_token %}
-          <button type="submit" class="nav-link px-3 bg-dark border-0">
-            Sair <i class="bi bi-box-arrow-right"></i>
-          </button>
+          <button type="submit" class="nav-link px-3 bg-dark border-0">Sair <i class="bi bi-box-arrow-right"></i></button>
         </form>
       </div>
     </div>
@@ -54,52 +48,60 @@
   <div class="container-fluid">
     <div class="row">
 
-      <!-- MENU LATERAL -->
+      <!-- MENU LATERAL (Dinâmico) -->
       <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
         <div class="position-sticky pt-3">
           <ul class="nav flex-column">
+            <!-- Itens Fixos -->
             <li class="nav-item">
-              <a class="nav-link active" aria-current="page" href="{% url 'home' %}">
-                <i class="bi bi-house-door"></i>
-                Início
-              </a>
+              <a class="nav-link" href="{% url 'home' %}"><i class="bi bi-house-door"></i> Início</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#"><i class="bi bi-person-circle"></i> Meu Perfil</a>
             </li>
             
+            <!-- Itens de Módulos (Controlados por Assinatura) -->
+            {% if 'clientes' in empresa_modulos %}
             <li class="nav-item">
-              <a class="nav-link" href="#">
-                <i class="bi bi-person-circle"></i>
-                Meu Perfil
-              </a>
+                <a class="nav-link" href="{% url 'cliente_list' %}"><i class="bi bi-people"></i> Clientes</a>
             </li>
+            {% endif %}
+
+            {% if 'casos' in empresa_modulos %}
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'cliente_list' %}">
-                <i class="bi bi-people"></i>
-                    Clientes
-                </a>
+                <a class="nav-link" href="{% url 'caso_list' %}"><i class="bi bi-briefcase"></i> Casos</a>
             </li>
+            {% endif %}
+
+            {% if 'tarefas' in empresa_modulos %}
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'caso_list' %}">
-                <i class="bi bi-briefcase"></i>
-                    Casos
-                </a>
+                <a class="nav-link" href="{% url 'tarefa_list_all' %}"><i class="bi bi-list-task"></i> Tarefas</a>
             </li>
+            {% endif %}
+
+            {% if 'timesheet' in empresa_modulos %}
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'tarefa_list_all' %}">
-                    <i class="bi bi-list-task"></i>
-                    Tarefas
-                </a>
+                <a class="nav-link" href="{% url 'timesheet_list_all' %}"><i class="bi bi-clock-history"></i> Timesheet</a>
             </li>
+            {% endif %}
+
+            {% if 'pesquisa-casos' in empresa_modulos %}
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'caso_pesquisa' %}">
-                    <i class="bi bi-search"></i>
-                    Pesquisar Casos
-                </a>
+                <a class="nav-link" href="{% url 'caso_pesquisa' %}"><i class="bi bi-search"></i> Pesquisar Casos</a>
             </li>
+            {% endif %}
+
+            {% if 'kanban' in empresa_modulos %}
             <li class="nav-item">
-              <a class="nav-link" href="#">
-                <i class="bi bi-gear"></i>
-                Configurações
-              </a>
+              <a class="nav-link" href="{% url 'kanban_board' %}"><i class="bi bi-kanban"></i> Casos Por Fase</a>
+            </li>
+            {% endif %}
+
+            <hr>
+
+            <!-- Itens Fixos -->
+            <li class="nav-item">
+              <a class="nav-link" href="#"><i class="bi bi-gear"></i> Configurações</a>
             </li>
           </ul>
         </div>
@@ -110,19 +112,16 @@
         <div class="pt-3 pb-2 mb-3 border-bottom">
           <h1 class="h2">{% block page_title %}{% endblock %}</h1>
         </div>
-        
-        <!-- AQUI É ONDE O CONTEÚDO DAS OUTRAS PÁGINAS VAI ENTRAR -->
-        {% block content %}
-        {% endblock %}
+        {% block content %}{% endblock %}
       </main>
 
     </div>
   </div>
 
-  <!-- JavaScript do Bootstrap -->
+  <!-- JavaScript -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-   <script src="https://unpkg.com/imask"></script>
-  {% block scripts %}
-{% endblock %}
+  <script src="https://unpkg.com/imask"></script>
+  {% block scripts %}{% endblock %}
+
 </body>
 </html>

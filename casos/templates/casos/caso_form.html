@@ -1,13 +1,30 @@
 {% extends 'core/base.html' %}
 
-{% block title %}{{ titulo|default:"Formulário de Caso" }}{% endblock %}
-{% block page_title %}{{ titulo|default:"Formulário de Caso" }}{% endblock %}
+{% block title %}{% if form.instance.pk %}Editar Caso{% else %}Adicionar Novo Caso{% endif %}{% endblock %}
+{% block page_title %}{% if form.instance.pk %}Editar Caso #{{ form.instance.pk }}{% else %}Adicionar Novo Caso{% endif %}{% endblock %}
 
 {% block content %}
 <div class="card">
     <div class="card-body">
         <form method="post" class="row g-3">
             {% csrf_token %}
+            <!-- ====================================================== -->
+            <!-- ADICIONE ESTE BLOCO DE CÓDIGO DE EMERGÊNCIA AQUI -->
+            <!-- ====================================================== -->
+            {% if form.instance.pk and form.instance.fase_atual_workflow %}
+                <input type="hidden" name="fase_atual_workflow" value="{{ form.instance.fase_atual_workflow.pk }}">
+            {% endif %}
+    <!-- ====================================================== -->
+            <!-- Mostra a Fase Atual SOMENTE na tela de EDIÇÃO -->
+            {% if form.instance.pk and form.fase_atual_workflow %}
+            <div class="col-12">
+                {{ form.fase_atual_workflow.label_tag }}
+                {{ form.fase_atual_workflow }}
+                {% if form.fase_atual_workflow.help_text %}
+                    <small class="form-text text-muted">{{ form.fase_atual_workflow.help_text }}</small>
+                {% endif %}
+            </div>
+            {% endif %}
 
             <!-- Linha 1: Status e Número do Aviso -->
             <div class="col-md-6">
@@ -194,7 +211,6 @@
 
 {% block scripts %}
 <script>
-// O seu código JavaScript para o modal genérico (que já está funcionando) vai aqui...
 document.addEventListener('DOMContentLoaded', function() {
     // --- LÓGICA DO MODAL GENÉRICO ---
     const genericModalElement = document.getElementById('addGenericModal');

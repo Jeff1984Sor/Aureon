@@ -1,63 +1,91 @@
-# No topo do arquivo, adicione CreateView e reverse_lazy às importações
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
-from .models import Cliente
-from .forms import ClienteForm # <-- Importe o formulário que acabamos de criar
-from django.contrib.auth.mixins import LoginRequiredMixin 
 from django.db.models import Q
+from .models import Cliente
+from .forms import ClienteForm
 
-# Esta view você já tem. Deixe ela como está.
+# ==============================================================================
+# VIEW PARA LISTAR CLIENTES (AGORA FILTRADA POR EMPRESA)
+# ==============================================================================
 class ClienteListView(LoginRequiredMixin, ListView):
     model = Cliente
     template_name = 'clientes/cliente_list.html'
     context_object_name = 'clientes'
-    paginate_by = 10 # Opcional: Adiciona paginação para listas grandes
+    paginate_by = 10
 
     def get_queryset(self):
-        queryset = super().get_queryset().order_by('nome_razao_social') # Começa com todos os clientes, ordenados por nome
+        # Pega a empresa do usuário logado
         
-        # Pega o termo de busca da URL (o 'q' do nosso formulário)
+        
+        # Começa com apenas os clientes daquela empresa
+        queryset = Cliente.objects.filter(empresa=empresa_usuario).order_by('nome_razao_social')
+        
+        # Aplica o filtro de busca textual, se houver
         search_term = self.request.GET.get('q')
-        
         if search_term:
-            # Se um termo de busca foi enviado, filtra o queryset
-            # __icontains faz a busca "case-insensitive" (não diferencia maiúsculas de minúsculas)
             queryset = queryset.filter(
                 Q(nome_razao_social__icontains=search_term) |
                 Q(email__icontains=search_term) |
                 Q(cidade__icontains=search_term) |
                 Q(uf__icontains=search_term) |
                 Q(cep__icontains=search_term)
-                # Adicione mais campos aqui se desejar
             )
         
         return queryset
 
-# --- ADICIONE ESTA NOVA VIEW ABAIXO ---
-
+# ==============================================================================
+# VIEW PARA CRIAR CLIENTES (AGORA ATRIBUINDO A EMPRESA)
+# ==============================================================================
 class ClienteCreateView(LoginRequiredMixin, CreateView):
     model = Cliente
     form_class = ClienteForm
-    template_name = 'clientes/cliente_form.html' # O arquivo HTML que vamos criar a seguir
-    success_url = reverse_lazy('cliente_list') # Para onde ir depois de salvar com sucesso
+    template_name = 'clientes/cliente_form.html'
+    success_url = reverse_lazy('cliente_list')
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['titulo'] = 'Cadastrar Novo Cliente'
+        return context
+
+    def form_valid(self, form):
+        # Antes de salvar, define a empresa do novo cliente
+        # como sendo a mesma do usuário que está fazendo o cadastro.
+        form.instance.empresa = self.request.user.empresa
+        return super().form_valid(form)
+
+# ==============================================================================
+# VIEWS DE DETALHE, EDIÇÃO E EXCLUSÃO (AGORA FILTRADAS POR EMPRESA)
+# ==============================================================================
 class ClienteDetailView(LoginRequiredMixin, DetailView):
     model = Cliente
     template_name = 'clientes/cliente_detail.html'
-    context_object_name = 'cliente' # O nome que usaremos no template para acessar o objeto
+    context_object_name = 'cliente'
+    
+    def get_queryset(self):
+        # Garante que um usuário só possa ver detalhes de clientes da sua própria empresa
+        return Cliente.objects.filter(empresa=self.request.user.empresa)
 
 class ClienteUpdateView(LoginRequiredMixin, UpdateView):
     model = Cliente
     form_class = ClienteForm
-    template_name = 'clientes/cliente_form.html' # Reutiliza o mesmo template do create
+    template_name = 'clientes/cliente_form.html'
     success_url = reverse_lazy('cliente_list')
 
-    # Opcional: passa um título para o template
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['titulo'] = 'Editar Cliente'
         return context
+        
+    def get_queryset(self):
+        # Garante que um usuário só possa editar clientes da sua própria empresa
+        return Cliente.objects.filter(empresa=self.request.user.empresa)
+
 class ClienteDeleteView(LoginRequiredMixin, DeleteView):
     model = Cliente
-    template_name = 'clientes/cliente_confirm_delete.html' # Um template para confirmar
+    template_name = 'clientes/cliente_confirm_delete.html'
     success_url = reverse_lazy('cliente_list')
+    
+    def get_queryset(self):
+        # Garante que um usuário só possa deletar clientes da sua própria empresa
+        return Cliente.objects.filter(empresa=self.request.user.empresa)

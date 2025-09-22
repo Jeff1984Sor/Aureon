@@ -1,8 +1,7 @@
 {% extends 'core/base.html' %}
 
-{% block title %}{{ titulo|default:"Formulário do Cliente" }}{% endblock %}
-
-{% block page_title %}{{ titulo|default:"Formulário do Cliente" }}{% endblock %}
+{% block title %}{% if form.instance.pk %}Editar Cliente{% else %}Novo Cliente{% endif %}{% endblock %}
+{% block page_title %}{% if form.instance.pk %}Editar Cliente{% else %}Adicionar Novo Cliente{% endif %}{% endblock %}
 
 {% block content %}
   <div class="card">
@@ -12,7 +11,7 @@
 
         <!-- Loop que renderiza cada campo do formulário -->
         {% for field in form %}
-          <div class="col-md-6">
+          <div class="col-md-6" id="container-{{ field.name }}">
             {{ field.label_tag }}
             {{ field }}
             
@@ -25,6 +24,15 @@
             {% endfor %}
           </div>
         {% endfor %}
+      {% if form.non_field_errors %}
+        <div class="col-12">
+            <div class="alert alert-danger">
+                {% for error in form.non_field_errors %}
+                    <p class="mb-0">{{ error }}</p>
+                {% endfor %}
+            </div>
+        </div>
+      {% endif %}
         
         <div class="col-12 mt-4">
           <button type="submit" class="btn btn-primary">Salvar</button>
@@ -37,59 +45,22 @@
 
 {% block scripts %}
 <script>
-    // Espera o DOM estar completamente carregado para executar os scripts
     document.addEventListener('DOMContentLoaded', function() {
-
-        // --- LÓGICA DE BUSCA DE ENDEREÇO POR CEP ---
-        const cepInput = document.getElementById('id_cep');
-        if (cepInput) {
-            cepInput.addEventListener('blur', () => {
-                const cep = cepInput.value.replace(/\D/g, ''); // Remove tudo que não for número
-
-                if (cep.length === 8) {
-                    // Feedback visual para o usuário
-                    document.getElementById('id_logradouro').value = "Buscando...";
-                    document.getElementById('id_bairro').value = "Buscando...";
-                    document.getElementById('id_cidade').value = "Buscando...";
-
-                    fetch(`https://viacep.com.br/ws/${cep}/json/`)
-                        .then(response => response.json())
-                        .then(data => {
-                            if (!data.erro) {
-                                document.getElementById('id_logradouro').value = data.logradouro;
-                                document.getElementById('id_bairro').value = data.bairro;
-                                document.getElementById('id_cidade').value = data.localidade;
-                                document.getElementById('id_uf').value = data.uf;
-                                document.getElementById('id_numero_endereco').focus();
-                            } else {
-                                alert('CEP não encontrado.');
-                                document.getElementById('id_logradouro').value = "";
-                                document.getElementById('id_bairro').value = "";
-                                document.getElementById('id_cidade').value = "";
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Erro ao buscar o CEP:', error);
-                            alert('Ocorreu um erro ao buscar o CEP.');
-                        });
-                }
-            });
-        }
-
-
         // --- LÓGICA PARA MOSTRAR/ESCONDER CAMPO DE CONTATO (PF/PJ) ---
         const tipoPessoaSelect = document.getElementById('id_tipo_pessoa');
-        const nomeContatoInput = document.getElementById('id_nome_contato');
+        const nomeContatoContainer = document.getElementById('container-nome_contato');
         
-        if (tipoPessoaSelect && nomeContatoInput) {
-            const nomeContatoContainer = nomeContatoInput.parentElement;
-
+        if (tipoPessoaSelect && nomeContatoContainer) {
             function toggleNomeContato() {
                 if (tipoPessoaSelect.value === 'PJ') {
                     nomeContatoContainer.style.display = 'block'; // Mostra
                 } else {
                     nomeContatoContainer.style.display = 'none'; // Esconde
-                    nomeContatoInput.value = ''; // Limpa o valor
+                    // Encontra o input dentro do container e limpa seu valor
+                    const nomeContatoInput = nomeContatoContainer.querySelector('input');
+                    if (nomeContatoInput) {
+                        nomeContatoInput.value = '';
+                    }
                 }
             }
 
@@ -99,7 +70,6 @@
             // Executa a função assim que a página carrega para definir o estado inicial
             toggleNomeContato();
         }
-
     });
 </script>
 {% endblock %}
